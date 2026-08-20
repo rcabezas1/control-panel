@@ -1,4 +1,4 @@
-const CLIENT_ID = 'TU_CLIENT_ID_AQUI';
+const CLIENT_ID = '414155249788-4ijcpfmeaateovnvmio3fjdbcvc268ge.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
 
 let tokenClient;
