@@ -9,7 +9,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-8 flex justify-center">
@@ -50,11 +49,23 @@
             </button>
         </div>
 
-        <!-- Lista de Eventos -->
-        <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col gap-4">
-            <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Próximos Eventos</h2>
+        <!-- Sección de Calendario con Selector -->
+        <section id="calendar-section"
+            class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col gap-4 hidden">
+            <!-- Selector de Calendarios -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Próximos Eventos</h2>
+                <div class="w-full sm:w-auto">
+                    <select id="calendar-select" onchange="onCalendarChange()"
+                        class="w-full sm:w-64 bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-600 cursor-pointer">
+                        <option value="">Cargando calendarios...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Lista de Eventos -->
             <div id="events-container" class="flex flex-col gap-3">
-                <p class="text-sm text-slate-500">Conecta tu cuenta para ver tus eventos.</p>
+                <p class="text-sm text-slate-500">Selecciona un calendario para ver los eventos.</p>
             </div>
         </section>
     </main>

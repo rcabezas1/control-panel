@@ -16,7 +16,8 @@ window.onload = function () {
                 }
                 accessToken = resp.access_token;
                 document.getElementById('login-container').style.display = 'none';
-                loadUserCalendar();
+                document.getElementById('calendar-section').classList.remove('hidden');
+                loadUserCalendarsList();
             },
         });
     }
@@ -30,32 +31,84 @@ function handleAuthClick() {
     }
 }
 
-async function loadUserCalendar() {
+// 1. Cargar la lista de todos los calendarios del usuario en el desplegable
+async function loadUserCalendarsList() {
+    if (!accessToken) return;
+
+    try {
+        const url = 'https://www.googleapis.com/calendar/v3/users/me/calendarList';
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+
+        if (!response.ok) throw new Error('Error al obtener la lista de calendarios');
+
+        const data = await response.json();
+        const calendars = data.items || [];
+
+        const selectEl = document.getElementById('calendar-select');
+        selectEl.innerHTML = '';
+
+        if (calendars.length === 0) {
+            selectEl.innerHTML = `<option value="">No se encontraron calendarios</option>`;
+            return;
+        }
+
+        // Rellenar el select
+        calendars.forEach((cal, index) => {
+            const option = document.createElement('option');
+            option.value = cal.id;
+            option.textContent = cal.summary;
+            // Seleccionar por defecto el calendario principal si existe
+            if (cal.primary || index === 0) {
+                option.selected = true;
+            }
+            selectEl.appendChild(option);
+        });
+
+        // Cargar eventos del calendario seleccionado inicialmente
+        loadUserCalendar(selectEl.value);
+
+    } catch (err) {
+        console.error("Error detallado al cargar calendarios:", err);
+        document.getElementById('events-container').innerHTML = `
+            <div class="text-center py-4 text-rose-400 text-sm">
+                No se pudo cargar la lista de calendarios.
+            </div>
+        `;
+    }
+}
+
+// Se ejecuta al cambiar de opción en el desplegable
+function onCalendarChange() {
+    const selectEl = document.getElementById('calendar-select');
+    const selectedCalendarId = selectEl.value;
+    if (selectedCalendarId) {
+        loadUserCalendar(selectedCalendarId);
+    }
+}
+
+// 2. Cargar los eventos del calendario seleccionado
+async function loadUserCalendar(calendarId) {
     if (!accessToken) return;
 
     try {
         const timeMin = new Date().toISOString();
-        const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=10`;
+        const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=10`;
 
         const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
+            headers: { 'Authorization': `Bearer ${accessToken}` }
         });
 
-        if (!response.ok) {
-            throw new Error('Error al obtener los eventos de Google Calendar');
-        }
+        if (!response.ok) throw new Error('Error al obtener los eventos');
 
         const data = await response.json();
-        const items = data.items || [];
-
-        renderEventsList(items);
+        renderEventsList(data.items || []);
     } catch (err) {
         console.error("Error detallado al cargar eventos:", err);
         document.getElementById('events-container').innerHTML = `
             <div class="text-center py-4 text-rose-400 text-sm">
-                No se pudieron cargar los eventos. Revisa la consola del navegador (F12).
+                No se pudieron cargar los eventos de este calendario.
             </div>
         `;
     }
@@ -65,7 +118,7 @@ function renderEventsList(items) {
     const container = document.getElementById('events-container');
 
     if (items.length === 0) {
-        container.innerHTML = `<p class="text-sm text-slate-400">No hay eventos próximos.</p>`;
+        container.innerHTML = `<p class="text-sm text-slate-400 py-2">No hay eventos próximos en este calendario.</p>`;
         return;
     }
 
