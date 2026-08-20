@@ -1,3 +1,4 @@
+const CLIENT_ID = '414155249788-4ijcpfmeaateovnvmio3fjdbcvc268ge.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
 
 let tokenClient;
@@ -21,7 +22,7 @@ async function initializeGapiClient() {
 
 function gisLoaded() {
     tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CONFIG.CLIENT_ID,
+        client_id: CLIENT_ID,
         scope: SCOPES,
         callback: ''
     });
@@ -42,7 +43,6 @@ function handleAuthClick() {
 
 async function loadUserCalendar() {
     try {
-        // Asegurarse de que el cliente de calendar esté cargado
         await gapi.client.load('calendar', 'v3');
 
         const response = await gapi.client.calendar.events.list({
