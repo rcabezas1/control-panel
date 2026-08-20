@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control Personal</title>
+    <!-- Tailwind CSS v4 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Google API Scripts -->
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+    <!-- FullCalendar -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-8 flex justify-center">
+
+    <main class="w-full max-w-5xl flex flex-col gap-6">
+
+        <!-- Barra Superior con Título y Control de Pantalla Completa -->
+        <header
+            class="flex justify-between items-center bg-slate-900 border border-slate-800 rounded-xl px-5 py-3 shadow-lg">
+            <h1 class="text-lg font-semibold text-slate-200">Panel Personal</h1>
+            <button onclick="toggleFullscreen()"
+                class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-2 cursor-pointer">
+                <span>⛶</span> Pantalla Completa
+            </button>
+        </header>
+
+        <!-- Fila de Relojes y Clima -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+                <span class="text-xs font-semibold text-slate-400 uppercase">Madrid</span>
+                <div id="clock-madrid" class="text-3xl font-bold font-mono mt-2">--:--:--</div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+                <span class="text-xs font-semibold text-slate-400 uppercase">Bogotá</span>
+                <div id="clock-bogota" class="text-3xl font-bold font-mono mt-2">--:--:--</div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+                <span class="text-xs font-semibold text-slate-400 uppercase">Clima (Madrid)</span>
+                <div id="weather-info" class="text-xl font-bold mt-2">Cargando...</div>
+            </div>
+        </section>
+
+        <!-- Botón de Login -->
+        <div id="login-container" class="flex justify-center my-2">
+            <button onclick="handleAuthClick()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition cursor-pointer">
+                Conectar mi Google Calendar
+            </button>
+        </div>
+
+        <!-- Sección del Calendario -->
+        <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+            <div id="calendar" class="text-slate-200"></div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

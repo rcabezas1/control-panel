@@ -1,0 +1,20 @@
+.fc {
+    --fc-border-color: #334155;
+    --fc-page-bg-color: transparent;
+}
+
+.fc-toolbar-title {
+    font-size: 1.25rem !important;
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.fc-button {
+    background-color: #334155 !important;
+    border: none !important;
+    border-radius: 0.5rem !important;
+}
+
+.fc-button:hover {
+    background-color: #475569 !important;
+}
