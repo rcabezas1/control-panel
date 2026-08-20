@@ -2,57 +2,55 @@ const CLIENT_ID = '414155249788-4ijcpfmeaateovnvmio3fjdbcvc268ge.apps.googleuser
 const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
 
 let tokenClient;
-let gapiInited = false;
-let gisInited = false;
+let accessToken = null;
 
-function gapiLoaded() {
-    gapi.load('client', initializeGapiClient);
-}
-
-async function initializeGapiClient() {
-    try {
-        await gapi.client.init({
-            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest']
+// Inicializar el cliente de token de Google de forma limpia
+window.onload = function () {
+    if (typeof google !== 'undefined' && google.accounts) {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: (resp) => {
+                if (resp.error) {
+                    console.error("Error de autenticación:", resp);
+                    return;
+                }
+                accessToken = resp.access_token;
+                document.getElementById('login-container').style.display = 'none';
+                loadUserCalendar();
+            },
         });
-        gapiInited = true;
-    } catch (error) {
-        console.error("Error al inicializar GAPI Client:", error);
+    }
+};
+
+function handleAuthClick() {
+    if (tokenClient) {
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+    } else {
+        console.error("Google Identity Services no está listo todavía.");
     }
 }
 
-function gisLoaded() {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: ''
-    });
-    gisInited = true;
-}
-
-function handleAuthClick() {
-    tokenClient.callback = async (resp) => {
-        if (resp.error) {
-            console.error("Error de autenticación:", resp);
-            return;
-        }
-        document.getElementById('login-container').style.display = 'none';
-        loadUserCalendar();
-    };
-    tokenClient.requestAccessToken({ prompt: 'consent' });
-}
-
 async function loadUserCalendar() {
-    try {
-        await gapi.client.load('calendar', 'v3');
+    if (!accessToken) return;
 
-        const response = await gapi.client.calendar.events.list({
-            'calendarId': 'primary',
-            'timeMin': (new Date()).toISOString(),
-            'singleEvents': true,
-            'orderBy': 'startTime'
+    try {
+        const timeMin = new Date().toISOString();
+        const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime`;
+
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
         });
 
-        const items = response.result.items || [];
+        if (!response.ok) {
+            throw new Error('Error al obtener los eventos de Google Calendar');
+        }
+
+        const data = await response.json();
+        const items = data.items || [];
+
         const events = items.map(e => ({
             title: e.summary || 'Sin título',
             start: e.start.dateTime || e.start.date,
