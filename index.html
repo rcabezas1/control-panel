@@ -19,7 +19,7 @@
 
     <main class="w-full max-w-5xl flex flex-col gap-6">
 
-        <!-- Barra Superior con Título y Control de Pantalla Completa -->
+        <!-- Barra Superior -->
         <header
             class="flex justify-between items-center bg-slate-900 border border-slate-800 rounded-xl px-5 py-3 shadow-lg">
             <h1 class="text-lg font-semibold text-slate-200">Panel Personal</h1>
@@ -29,7 +29,7 @@
             </button>
         </header>
 
-        <!-- Fila de Relojes y Clima -->
+        <!-- Relojes y Clima -->
         <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
                 <span class="text-xs font-semibold text-slate-400 uppercase">Madrid</span>
@@ -53,12 +53,14 @@
             </button>
         </div>
 
-        <!-- Sección del Calendario -->
+        <!-- Calendario -->
         <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
             <div id="calendar" class="text-slate-200"></div>
         </section>
     </main>
 
+    <!-- Archivo de configuración privado -->
+    <script src="config.js"></script>
     <script src="app.js"></script>
 </body>
 
