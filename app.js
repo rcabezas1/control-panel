@@ -4,6 +4,17 @@ const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
 let tokenClient;
 let accessToken = null;
 let refreshInterval = null;
+let wakeLock = null;
+
+async function requestWakeLock() {
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+    } catch (err) { console.error(`${err.name}, ${err.message}`); }
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
+});
 
 window.onload = function () {
     if (typeof google !== 'undefined' && google.accounts) {
@@ -11,188 +22,88 @@ window.onload = function () {
             client_id: CLIENT_ID,
             scope: SCOPES,
             callback: (resp) => {
-                if (resp.error) {
-                    console.error("Error de autenticación:", resp);
-                    return;
-                }
+                if (resp.error) return;
                 accessToken = resp.access_token;
                 document.getElementById('login-container').style.display = 'none';
                 document.getElementById('calendar-section').classList.remove('hidden');
                 loadUserCalendarsList();
-
-                // Configurar auto-refresco cada 1 hora (3600000 ms)
                 if (refreshInterval) clearInterval(refreshInterval);
-                refreshInterval = setInterval(() => {
-                    refreshCurrentCalendar();
-                }, 3600000);
+                refreshInterval = setInterval(refreshCurrentCalendar, 3600000);
             },
         });
     }
 };
 
-function handleAuthClick() {
-    if (tokenClient) {
-        tokenClient.requestAccessToken({ prompt: 'consent' });
-    } else {
-        console.error("Google Identity Services no está listo todavía.");
-    }
+function handleAuthClick() { tokenClient.requestAccessToken({ prompt: 'consent' }); }
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(requestWakeLock);
+    } else { document.exitFullscreen(); }
 }
 
 async function loadUserCalendarsList() {
     if (!accessToken) return;
-
     try {
-        const url = 'https://www.googleapis.com/calendar/v3/users/me/calendarList';
-        const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-
-        if (!response.ok) throw new Error('Error al obtener la lista de calendarios');
-
-        const data = await response.json();
-        const calendars = data.items || [];
-
+        const res = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', { headers: { 'Authorization': `Bearer ${accessToken}` } });
+        const data = await res.json();
         const selectEl = document.getElementById('calendar-select');
         selectEl.innerHTML = '';
-
-        if (calendars.length === 0) {
-            selectEl.innerHTML = `<option value="">No se encontraron calendarios</option>`;
-            return;
-        }
-
-        calendars.forEach((cal, index) => {
-            const option = document.createElement('option');
-            option.value = cal.id;
-            option.textContent = cal.summary;
-            if (cal.primary || index === 0) {
-                option.selected = true;
-            }
-            selectEl.appendChild(option);
+        data.items.forEach((cal, i) => {
+            const opt = document.createElement('option');
+            opt.value = cal.id; opt.textContent = cal.summary;
+            if (cal.primary || i === 0) opt.selected = true;
+            selectEl.appendChild(opt);
         });
-
         loadUserCalendar(selectEl.value);
-
-    } catch (err) {
-        console.error("Error detallado al cargar calendarios:", err);
-        document.getElementById('events-container').innerHTML = `
-            <div class="text-center py-4 text-rose-400 text-sm col-span-full">
-                No se pudo cargar la lista de calendarios.
-            </div>
-        `;
-    }
+    } catch (err) { console.error(err); }
 }
 
-function onCalendarChange() {
-    const selectEl = document.getElementById('calendar-select');
-    const selectedCalendarId = selectEl.value;
-    if (selectedCalendarId) {
-        loadUserCalendar(selectedCalendarId);
-    }
-}
-
-function refreshCurrentCalendar() {
-    const selectEl = document.getElementById('calendar-select');
-    if (selectEl && selectEl.value) {
-        loadUserCalendar(selectEl.value);
-    }
-}
+function onCalendarChange() { loadUserCalendar(document.getElementById('calendar-select').value); }
+function refreshCurrentCalendar() { loadUserCalendar(document.getElementById('calendar-select').value); }
 
 async function loadUserCalendar(calendarId) {
     if (!accessToken) return;
-
     try {
         const timeMin = new Date().toISOString();
-        const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=12`;
-
-        const response = await fetch(url, {
+        const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=9`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
-
-        if (!response.ok) throw new Error('Error al obtener los eventos');
-
-        const data = await response.json();
+        const data = await res.json();
         renderEventsGrid(data.items || []);
-    } catch (err) {
-        console.error("Error detallado al cargar eventos:", err);
-        document.getElementById('events-container').innerHTML = `
-            <div class="text-center py-4 text-rose-400 text-sm col-span-full">
-                No se pudieron cargar los eventos de este calendario.
-            </div>
-        `;
-    }
+    } catch (err) { console.error(err); }
 }
 
 function renderEventsGrid(items) {
     const container = document.getElementById('events-container');
-
-    if (items.length === 0) {
-        container.innerHTML = `<p class="text-sm text-slate-400 py-2 col-span-full">No hay eventos próximos en este calendario.</p>`;
-        return;
-    }
-
-    container.innerHTML = items.map(e => {
-        const startRaw = e.start.dateTime || e.start.date;
-        const startDate = new Date(startRaw);
-        const dateFormatted = isNaN(startDate) ? startRaw : startDate.toLocaleString('es-ES', {
-            weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
-
-        return `
-            <div class="bg-slate-950/50 border border-slate-800/80 rounded-lg p-4 flex flex-col justify-between gap-3 shadow-inner">
-                <span class="font-medium text-slate-200 text-sm sm:text-base line-clamp-2">${e.summary || 'Sin título'}</span>
-                <span class="text-xs text-slate-400 font-mono bg-slate-900 px-2.5 py-1.5 rounded-md border border-slate-800 self-start">${dateFormatted}</span>
-            </div>
-        `;
-    }).join('');
+    container.innerHTML = items.length === 0 ? '<p class="text-lg text-slate-500 col-span-full">No hay eventos.</p>' :
+        items.map(e => `
+        <div class="bg-slate-900 border-2 border-slate-700 rounded-2xl p-5 flex flex-col justify-between gap-3 shadow-xl">
+            <span class="font-bold text-white text-lg">${e.summary || 'Sin título'}</span>
+            <span class="text-sm text-slate-400 font-mono bg-black px-3 py-2 rounded-lg border border-slate-800 self-start">
+                ${new Date(e.start.dateTime || e.start.date).toLocaleString('es-ES', { weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </span>
+        </div>
+    `).join('');
 }
 
-// --- CONTROL DE PANTALLA COMPLETA ---
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch((err) => {
-            console.error(`Error al intentar activar pantalla completa: ${err.message}`);
-        });
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
-    }
-}
-
-// --- RELOJES MUNDIALES ---
 function updateClocks() {
-    const opt = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-    const madridEl = document.getElementById('clock-madrid');
-    const bogotaEl = document.getElementById('clock-bogota');
-
-    if (madridEl) madridEl.textContent = new Intl.DateTimeFormat('es-ES', { ...opt, timeZone: 'Europe/Madrid' }).format(new Date());
-    if (bogotaEl) bogotaEl.textContent = new Intl.DateTimeFormat('es-ES', { ...opt, timeZone: 'America/Bogota' }).format(new Date());
+    // Solo hora y minuto
+    const opt = { hour: '2-digit', minute: '2-digit', hour12: false };
+    document.getElementById('clock-madrid').textContent = new Intl.DateTimeFormat('es-ES', { ...opt, timeZone: 'Europe/Madrid' }).format(new Date());
+    document.getElementById('clock-bogota').textContent = new Intl.DateTimeFormat('es-ES', { ...opt, timeZone: 'America/Bogota' }).format(new Date());
 }
-setInterval(updateClocks, 1000);
+setInterval(updateClocks, 60000); // Se actualiza cada minuto en lugar de cada segundo
 updateClocks();
 
-// --- PRONÓSTICO DEL CLIMA (Madrid y Bogotá) ---
 async function fetchWeather() {
-    const weatherMadridEl = document.getElementById('weather-madrid');
-    try {
-        const resMadrid = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.4168&longitude=-3.7038&current=temperature_2m&timezone=Europe%2FMadrid');
-        const dataMadrid = await resMadrid.json();
-        if (weatherMadridEl) {
-            weatherMadridEl.textContent = `${Math.round(dataMadrid.current.temperature_2m)}°C`;
-        }
-    } catch {
-        if (weatherMadridEl) weatherMadridEl.textContent = 'Error';
-    }
-
-    const weatherBogotaEl = document.getElementById('weather-bogota');
-    try {
-        const resBogota = await fetch('https://api.open-meteo.com/v1/forecast?latitude=4.6097&longitude=-74.0817&current=temperature_2m&timezone=America%2FBogota');
-        const dataBogota = await resBogota.json();
-        if (weatherBogotaEl) {
-            weatherBogotaEl.textContent = `${Math.round(dataBogota.current.temperature_2m)}°C`;
-        }
-    } catch {
-        if (weatherBogotaEl) weatherBogotaEl.textContent = 'Error';
-    }
+    const coords = { madrid: '40.4168,-3.7038', bogota: '4.6097,-74.0817' };
+    ['madrid', 'bogota'].forEach(async (city) => {
+        try {
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords[city].split(',')[0]}&longitude=${coords[city].split(',')[1]}&current=temperature_2m`);
+            const data = await res.json();
+            document.getElementById(`weather-${city}`).textContent = `${Math.round(data.current.temperature_2m)}°C`;
+        } catch { document.getElementById(`weather-${city}`).textContent = 'Error'; }
+    });
 }
 fetchWeather();
