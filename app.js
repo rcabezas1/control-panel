@@ -54,19 +54,16 @@ async function loadUserCalendarsList() {
             return;
         }
 
-        // Rellenar el select
         calendars.forEach((cal, index) => {
             const option = document.createElement('option');
             option.value = cal.id;
             option.textContent = cal.summary;
-            // Seleccionar por defecto el calendario principal si existe
             if (cal.primary || index === 0) {
                 option.selected = true;
             }
             selectEl.appendChild(option);
         });
 
-        // Cargar eventos del calendario seleccionado inicialmente
         loadUserCalendar(selectEl.value);
 
     } catch (err) {
@@ -79,7 +76,6 @@ async function loadUserCalendarsList() {
     }
 }
 
-// Se ejecuta al cambiar de opción en el desplegable
 function onCalendarChange() {
     const selectEl = document.getElementById('calendar-select');
     const selectedCalendarId = selectEl.value;
@@ -88,7 +84,6 @@ function onCalendarChange() {
     }
 }
 
-// 2. Cargar los eventos del calendario seleccionado
 async function loadUserCalendar(calendarId) {
     if (!accessToken) return;
 
@@ -163,17 +158,30 @@ function updateClocks() {
 setInterval(updateClocks, 1000);
 updateClocks();
 
-// --- PRONÓSTICO DEL CLIMA ---
+// --- PRONÓSTICO DEL CLIMA (Madrid y Bogotá) ---
 async function fetchWeather() {
-    const weatherEl = document.getElementById('weather-info');
+    // Clima Madrid (Lat: 40.4168, Lon: -3.7038)
+    const weatherMadridEl = document.getElementById('weather-madrid');
     try {
-        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.4168&longitude=-3.7038&current=temperature_2m&timezone=Europe%2FMadrid');
-        const data = await res.json();
-        if (weatherEl) {
-            weatherEl.innerHTML = `<span class="text-3xl font-mono">${Math.round(data.current.temperature_2m)}°C</span>`;
+        const resMadrid = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.4168&longitude=-3.7038&current=temperature_2m&timezone=Europe%2FMadrid');
+        const dataMadrid = await resMadrid.json();
+        if (weatherMadridEl) {
+            weatherMadridEl.textContent = `${Math.round(dataMadrid.current.temperature_2m)}°C`;
         }
     } catch {
-        if (weatherEl) weatherEl.textContent = 'Error al cargar';
+        if (weatherMadridEl) weatherMadridEl.textContent = 'Error';
+    }
+
+    // Clima Bogotá (Lat: 4.6097, Lon: -74.0817)
+    const weatherBogotaEl = document.getElementById('weather-bogota');
+    try {
+        const resBogota = await fetch('https://api.open-meteo.com/v1/forecast?latitude=4.6097&longitude=-74.0817&current=temperature_2m&timezone=America%2FBogota');
+        const dataBogota = await resBogota.json();
+        if (weatherBogotaEl) {
+            weatherBogotaEl.textContent = `${Math.round(dataBogota.current.temperature_2m)}°C`;
+        }
+    } catch {
+        if (weatherBogotaEl) weatherBogotaEl.textContent = 'Error';
     }
 }
 fetchWeather();

@@ -25,14 +25,20 @@
             </button>
         </header>
 
-        <!-- Relojes y Clima (Madrid y Bogotá integrados) -->
+        <!-- Relojes y Clima (Madrid y Bogotá con iconos grandes) -->
         <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Tarjeta Madrid + Clima -->
             <div
                 class="bg-slate-900 border border-slate-800 rounded-xl p-6 sm:p-8 shadow-lg flex flex-col justify-between gap-6">
+                <div class="flex justify-between items-center">
+                    <span
+                        class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <span>🇪🇸</span> Madrid
+                    </span>
+                    <span class="text-3xl sm:text-4xl">🏙️</span>
+                </div>
                 <div>
-                    <span class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider">Madrid</span>
-                    <div id="clock-madrid" class="text-4xl sm:text-5xl font-bold font-mono mt-3">--:--:--</div>
+                    <div id="clock-madrid" class="text-4xl sm:text-5xl font-bold font-mono">--:--:--</div>
                 </div>
                 <div class="border-t border-slate-800 pt-4 flex items-center justify-between">
                     <span class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider">Clima
@@ -44,9 +50,15 @@
             <!-- Tarjeta Bogotá + Clima -->
             <div
                 class="bg-slate-900 border border-slate-800 rounded-xl p-6 sm:p-8 shadow-lg flex flex-col justify-between gap-6">
+                <div class="flex justify-between items-center">
+                    <span
+                        class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <span>🇨🇴</span> Bogotá
+                    </span>
+                    <span class="text-3xl sm:text-4xl">🏔️</span>
+                </div>
                 <div>
-                    <span class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider">Bogotá</span>
-                    <div id="clock-bogota" class="text-4xl sm:text-5xl font-bold font-mono mt-3">--:--:--</div>
+                    <div id="clock-bogota" class="text-4xl sm:text-5xl font-bold font-mono">--:--:--</div>
                 </div>
                 <div class="border-t border-slate-800 pt-4 flex items-center justify-between">
                     <span class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider">Clima
