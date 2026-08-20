@@ -3,6 +3,7 @@ const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
 
 let tokenClient;
 let accessToken = null;
+let refreshInterval = null;
 
 window.onload = function () {
     if (typeof google !== 'undefined' && google.accounts) {
@@ -18,6 +19,12 @@ window.onload = function () {
                 document.getElementById('login-container').style.display = 'none';
                 document.getElementById('calendar-section').classList.remove('hidden');
                 loadUserCalendarsList();
+
+                // Configurar auto-refresco cada 1 hora (3600000 ms)
+                if (refreshInterval) clearInterval(refreshInterval);
+                refreshInterval = setInterval(() => {
+                    refreshCurrentCalendar();
+                }, 3600000);
             },
         });
     }
@@ -31,7 +38,6 @@ function handleAuthClick() {
     }
 }
 
-// 1. Cargar la lista de todos los calendarios del usuario en el desplegable
 async function loadUserCalendarsList() {
     if (!accessToken) return;
 
@@ -69,7 +75,7 @@ async function loadUserCalendarsList() {
     } catch (err) {
         console.error("Error detallado al cargar calendarios:", err);
         document.getElementById('events-container').innerHTML = `
-            <div class="text-center py-4 text-rose-400 text-sm">
+            <div class="text-center py-4 text-rose-400 text-sm col-span-full">
                 No se pudo cargar la lista de calendarios.
             </div>
         `;
@@ -84,12 +90,19 @@ function onCalendarChange() {
     }
 }
 
+function refreshCurrentCalendar() {
+    const selectEl = document.getElementById('calendar-select');
+    if (selectEl && selectEl.value) {
+        loadUserCalendar(selectEl.value);
+    }
+}
+
 async function loadUserCalendar(calendarId) {
     if (!accessToken) return;
 
     try {
         const timeMin = new Date().toISOString();
-        const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=10`;
+        const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=12`;
 
         const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
@@ -98,22 +111,22 @@ async function loadUserCalendar(calendarId) {
         if (!response.ok) throw new Error('Error al obtener los eventos');
 
         const data = await response.json();
-        renderEventsList(data.items || []);
+        renderEventsGrid(data.items || []);
     } catch (err) {
         console.error("Error detallado al cargar eventos:", err);
         document.getElementById('events-container').innerHTML = `
-            <div class="text-center py-4 text-rose-400 text-sm">
+            <div class="text-center py-4 text-rose-400 text-sm col-span-full">
                 No se pudieron cargar los eventos de este calendario.
             </div>
         `;
     }
 }
 
-function renderEventsList(items) {
+function renderEventsGrid(items) {
     const container = document.getElementById('events-container');
 
     if (items.length === 0) {
-        container.innerHTML = `<p class="text-sm text-slate-400 py-2">No hay eventos próximos en este calendario.</p>`;
+        container.innerHTML = `<p class="text-sm text-slate-400 py-2 col-span-full">No hay eventos próximos en este calendario.</p>`;
         return;
     }
 
@@ -125,9 +138,9 @@ function renderEventsList(items) {
         });
 
         return `
-            <div class="bg-slate-950/50 border border-slate-800/80 rounded-lg p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <span class="font-medium text-slate-200 text-sm sm:text-base">${e.summary || 'Sin título'}</span>
-                <span class="text-xs text-slate-400 font-mono bg-slate-900 px-2.5 py-1 rounded-md border border-slate-800">${dateFormatted}</span>
+            <div class="bg-slate-950/50 border border-slate-800/80 rounded-lg p-4 flex flex-col justify-between gap-3 shadow-inner">
+                <span class="font-medium text-slate-200 text-sm sm:text-base line-clamp-2">${e.summary || 'Sin título'}</span>
+                <span class="text-xs text-slate-400 font-mono bg-slate-900 px-2.5 py-1.5 rounded-md border border-slate-800 self-start">${dateFormatted}</span>
             </div>
         `;
     }).join('');
@@ -160,7 +173,6 @@ updateClocks();
 
 // --- PRONÓSTICO DEL CLIMA (Madrid y Bogotá) ---
 async function fetchWeather() {
-    // Clima Madrid (Lat: 40.4168, Lon: -3.7038)
     const weatherMadridEl = document.getElementById('weather-madrid');
     try {
         const resMadrid = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.4168&longitude=-3.7038&current=temperature_2m&timezone=Europe%2FMadrid');
@@ -172,7 +184,6 @@ async function fetchWeather() {
         if (weatherMadridEl) weatherMadridEl.textContent = 'Error';
     }
 
-    // Clima Bogotá (Lat: 4.6097, Lon: -74.0817)
     const weatherBogotaEl = document.getElementById('weather-bogota');
     try {
         const resBogota = await fetch('https://api.open-meteo.com/v1/forecast?latitude=4.6097&longitude=-74.0817&current=temperature_2m&timezone=America%2FBogota');

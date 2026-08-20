@@ -25,7 +25,7 @@
             </button>
         </header>
 
-        <!-- Relojes y Clima (Madrid y Bogotá con iconos grandes) -->
+        <!-- Relojes y Clima -->
         <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Tarjeta Madrid + Clima -->
             <div
@@ -76,23 +76,27 @@
             </button>
         </div>
 
-        <!-- Sección de Calendario con Selector -->
+        <!-- Sección de Calendario con Selector y Refresco -->
         <section id="calendar-section"
             class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col gap-4 hidden">
-            <!-- Selector de Calendarios -->
+            <!-- Controles Superiores -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Próximos Eventos</h2>
-                <div class="w-full sm:w-auto">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
                     <select id="calendar-select" onchange="onCalendarChange()"
-                        class="w-full sm:w-64 bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-600 cursor-pointer">
+                        class="w-full sm:w-60 bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-600 cursor-pointer">
                         <option value="">Cargando calendarios...</option>
                     </select>
+                    <button onclick="refreshCurrentCalendar()" title="Refrescar eventos"
+                        class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-lg transition cursor-pointer flex items-center justify-center">
+                        🔄
+                    </button>
                 </div>
             </div>
 
-            <!-- Lista de Eventos -->
-            <div id="events-container" class="flex flex-col gap-3">
-                <p class="text-sm text-slate-500">Selecciona un calendario para ver los eventos.</p>
+            <!-- Lista de Eventos en Horizontal (Grid) -->
+            <div id="events-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <p class="text-sm text-slate-500 col-span-full">Selecciona un calendario para ver los eventos.</p>
             </div>
         </section>
     </main>
