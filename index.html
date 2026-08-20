@@ -25,19 +25,34 @@
             </button>
         </header>
 
-        <!-- Relojes y Clima -->
-        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
-                <span class="text-xs font-semibold text-slate-400 uppercase">Madrid</span>
-                <div id="clock-madrid" class="text-3xl font-bold font-mono mt-2">--:--:--</div>
+        <!-- Relojes y Clima (Madrid y Bogotá integrados) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Tarjeta Madrid + Clima -->
+            <div
+                class="bg-slate-900 border border-slate-800 rounded-xl p-6 sm:p-8 shadow-lg flex flex-col justify-between gap-6">
+                <div>
+                    <span class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider">Madrid</span>
+                    <div id="clock-madrid" class="text-4xl sm:text-5xl font-bold font-mono mt-3">--:--:--</div>
+                </div>
+                <div class="border-t border-slate-800 pt-4 flex items-center justify-between">
+                    <span class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider">Clima
+                        Actual</span>
+                    <div id="weather-madrid" class="text-2xl sm:text-3xl font-bold font-mono">Cargando...</div>
+                </div>
             </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
-                <span class="text-xs font-semibold text-slate-400 uppercase">Bogotá</span>
-                <div id="clock-bogota" class="text-3xl font-bold font-mono mt-2">--:--:--</div>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
-                <span class="text-xs font-semibold text-slate-400 uppercase">Clima (Madrid)</span>
-                <div id="weather-info" class="text-xl font-bold mt-2">Cargando...</div>
+
+            <!-- Tarjeta Bogotá + Clima -->
+            <div
+                class="bg-slate-900 border border-slate-800 rounded-xl p-6 sm:p-8 shadow-lg flex flex-col justify-between gap-6">
+                <div>
+                    <span class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider">Bogotá</span>
+                    <div id="clock-bogota" class="text-4xl sm:text-5xl font-bold font-mono mt-3">--:--:--</div>
+                </div>
+                <div class="border-t border-slate-800 pt-4 flex items-center justify-between">
+                    <span class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider">Clima
+                        Actual</span>
+                    <div id="weather-bogota" class="text-2xl sm:text-3xl font-bold font-mono">Cargando...</div>
+                </div>
             </div>
         </section>
 
