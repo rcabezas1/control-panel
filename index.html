@@ -9,8 +9,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- FullCalendar -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -52,9 +50,12 @@
             </button>
         </div>
 
-        <!-- Calendario -->
-        <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
-            <div id="calendar" class="text-slate-200"></div>
+        <!-- Lista de Eventos -->
+        <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col gap-4">
+            <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Próximos Eventos</h2>
+            <div id="events-container" class="flex flex-col gap-3">
+                <p class="text-sm text-slate-500">Conecta tu cuenta para ver tus eventos.</p>
+            </div>
         </section>
     </main>
 

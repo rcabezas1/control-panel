@@ -4,7 +4,6 @@ const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
 let tokenClient;
 let accessToken = null;
 
-// Inicializar el cliente de token de Google de forma limpia
 window.onload = function () {
     if (typeof google !== 'undefined' && google.accounts) {
         tokenClient = google.accounts.oauth2.initTokenClient({
@@ -36,7 +35,7 @@ async function loadUserCalendar() {
 
     try {
         const timeMin = new Date().toISOString();
-        const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime`;
+        const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=10`;
 
         const response = await fetch(url, {
             headers: {
@@ -51,36 +50,39 @@ async function loadUserCalendar() {
         const data = await response.json();
         const items = data.items || [];
 
-        const events = items.map(e => ({
-            title: e.summary || 'Sin título',
-            start: e.start.dateTime || e.start.date,
-            end: e.end ? (e.end.dateTime || e.end.date) : null
-        }));
-
-        renderCalendar(events);
+        renderEventsList(items);
     } catch (err) {
-        console.error("Error detallado al cargar eventos del calendario:", err);
-        document.getElementById('calendar').innerHTML = `
-            <div class="text-center py-8 text-rose-400 text-sm">
+        console.error("Error detallado al cargar eventos:", err);
+        document.getElementById('events-container').innerHTML = `
+            <div class="text-center py-4 text-rose-400 text-sm">
                 No se pudieron cargar los eventos. Revisa la consola del navegador (F12).
             </div>
         `;
     }
 }
 
-function renderCalendar(events) {
-    const calendarEl = document.getElementById('calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: 'es',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek'
-        },
-        events: events
-    });
-    calendar.render();
+function renderEventsList(items) {
+    const container = document.getElementById('events-container');
+
+    if (items.length === 0) {
+        container.innerHTML = `<p class="text-sm text-slate-400">No hay eventos próximos.</p>`;
+        return;
+    }
+
+    container.innerHTML = items.map(e => {
+        const startRaw = e.start.dateTime || e.start.date;
+        const startDate = new Date(startRaw);
+        const dateFormatted = isNaN(startDate) ? startRaw : startDate.toLocaleString('es-ES', {
+            weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        return `
+            <div class="bg-slate-950/50 border border-slate-800/80 rounded-lg p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <span class="font-medium text-slate-200 text-sm sm:text-base">${e.summary || 'Sin título'}</span>
+                <span class="text-xs text-slate-400 font-mono bg-slate-900 px-2.5 py-1 rounded-md border border-slate-800">${dateFormatted}</span>
+            </div>
+        `;
+    }).join('');
 }
 
 // --- CONTROL DE PANTALLA COMPLETA ---
