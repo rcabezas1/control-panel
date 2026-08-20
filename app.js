@@ -77,23 +77,35 @@ async function loadUserCalendar(calendarId) {
 function renderEventsGrid(items) {
     const container = document.getElementById('events-container');
     container.innerHTML = items.length === 0 ? '<p class="text-lg text-slate-500 col-span-full">No hay eventos.</p>' :
-        items.map(e => `
-        <div class="bg-slate-900 border-2 border-slate-700 rounded-2xl p-5 flex flex-col justify-between gap-3 shadow-xl">
-            <span class="font-bold text-white text-lg">${e.summary || 'Sin título'}</span>
-            <span class="text-sm text-slate-400 font-mono bg-black px-3 py-2 rounded-lg border border-slate-800 self-start">
-                ${new Date(e.start.dateTime || e.start.date).toLocaleString('es-ES', { weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-            </span>
-        </div>
-    `).join('');
+        items.map(e => {
+            const startRaw = e.start.dateTime || e.start.date;
+            const endRaw = e.end.dateTime || e.end.date;
+
+            const start = new Date(startRaw);
+            const end = new Date(endRaw);
+
+            const startStr = start.toLocaleString('es-ES', { weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const endStr = end.toLocaleString('es-ES', { weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+            const timeDisplay = (startRaw !== endRaw) ? `${startStr} - ${endStr}` : startStr;
+
+            return `
+            <div class="bg-slate-900 border-2 border-slate-700 rounded-2xl p-5 flex flex-col justify-between gap-3 shadow-xl">
+                <span class="font-bold text-white text-lg leading-tight">${e.summary || 'Sin título'}</span>
+                <span class="text-xs sm:text-sm text-slate-400 font-mono bg-black px-3 py-2 rounded-lg border border-slate-800 self-start">
+                    ${timeDisplay}
+                </span>
+            </div>
+        `;
+        }).join('');
 }
 
 function updateClocks() {
-    // Solo hora y minuto
     const opt = { hour: '2-digit', minute: '2-digit', hour12: false };
     document.getElementById('clock-madrid').textContent = new Intl.DateTimeFormat('es-ES', { ...opt, timeZone: 'Europe/Madrid' }).format(new Date());
     document.getElementById('clock-bogota').textContent = new Intl.DateTimeFormat('es-ES', { ...opt, timeZone: 'America/Bogota' }).format(new Date());
 }
-setInterval(updateClocks, 60000); // Se actualiza cada minuto en lugar de cada segundo
+setInterval(updateClocks, 60000);
 updateClocks();
 
 async function fetchWeather() {
