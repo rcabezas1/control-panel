@@ -16,6 +16,16 @@ document.addEventListener('visibilitychange', () => {
     if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
 });
 
+// Escuchar cambios de pantalla completa (por ejemplo, si se presiona ESC o se sale mediante gestos móviles)
+document.addEventListener('fullscreenchange', () => {
+    const btn = document.getElementById('fullscreen-btn');
+    if (document.fullscreenElement) {
+        btn.classList.add('hidden'); // Ocultar botón en pantalla completa
+    } else {
+        btn.classList.remove('hidden'); // Mostrar botón al salir
+    }
+});
+
 window.onload = function () {
     if (typeof google !== 'undefined' && google.accounts) {
         tokenClient = google.accounts.oauth2.initTokenClient({
@@ -39,7 +49,11 @@ function handleAuthClick() { tokenClient.requestAccessToken({ prompt: 'consent' 
 function toggleFullscreen() {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().then(requestWakeLock);
-    } else { document.exitFullscreen(); }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
 }
 
 async function loadUserCalendarsList() {
@@ -50,10 +64,7 @@ async function loadUserCalendarsList() {
         const selectEl = document.getElementById('calendar-select');
         selectEl.innerHTML = '';
 
-        // Palabras clave para buscar coincidencia por defecto
         const keywords = ['compartido', 'compartir', 'shared', 'share'];
-
-        // Primero buscamos si algún calendario contiene alguna de las palabras clave en su nombre
         let defaultCalendarId = null;
 
         data.items.forEach((cal) => {
@@ -69,9 +80,6 @@ async function loadUserCalendarsList() {
             opt.value = cal.id;
             opt.textContent = cal.summary;
 
-            // Regla de selección: 
-            // 1. Si encontró uno con la palabra clave, se selecciona ese.
-            // 2. Si no, se selecciona el principal (primary) o el primero de la lista.
             if (defaultCalendarId) {
                 if (cal.id === defaultCalendarId) opt.selected = true;
             } else {
