@@ -49,12 +49,38 @@ async function loadUserCalendarsList() {
         const data = await res.json();
         const selectEl = document.getElementById('calendar-select');
         selectEl.innerHTML = '';
+
+        // Palabras clave para buscar coincidencia por defecto
+        const keywords = ['compartido', 'compartir', 'shared', 'share'];
+
+        // Primero buscamos si algún calendario contiene alguna de las palabras clave en su nombre
+        let defaultCalendarId = null;
+
+        data.items.forEach((cal) => {
+            const summaryLower = (cal.summary || '').toLowerCase();
+            const matchesKeyword = keywords.some(keyword => summaryLower.includes(keyword));
+            if (matchesKeyword && !defaultCalendarId) {
+                defaultCalendarId = cal.id;
+            }
+        });
+
         data.items.forEach((cal, i) => {
             const opt = document.createElement('option');
-            opt.value = cal.id; opt.textContent = cal.summary;
-            if (cal.primary || i === 0) opt.selected = true;
+            opt.value = cal.id;
+            opt.textContent = cal.summary;
+
+            // Regla de selección: 
+            // 1. Si encontró uno con la palabra clave, se selecciona ese.
+            // 2. Si no, se selecciona el principal (primary) o el primero de la lista.
+            if (defaultCalendarId) {
+                if (cal.id === defaultCalendarId) opt.selected = true;
+            } else {
+                if (cal.primary || i === 0) opt.selected = true;
+            }
+
             selectEl.appendChild(opt);
         });
+
         loadUserCalendar(selectEl.value);
     } catch (err) { console.error(err); }
 }
