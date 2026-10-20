@@ -18,12 +18,10 @@ document.addEventListener('visibilitychange', () => {
 
 // Escuchar cambios de pantalla completa (por ejemplo, si se presiona ESC o se sale mediante gestos móviles)
 document.addEventListener('fullscreenchange', () => {
-    const btn = document.getElementById('fullscreen-btn');
-    if (document.fullscreenElement) {
-        btn.classList.add('hidden'); // Ocultar botón en pantalla completa
-    } else {
-        btn.classList.remove('hidden'); // Mostrar botón al salir
-    }
+    const isFullscreen = !!document.fullscreenElement;
+    // En pantalla completa se oculta el botón de entrar y se muestra la X para salir
+    document.getElementById('fullscreen-btn').classList.toggle('hidden', isFullscreen);
+    document.getElementById('exit-fullscreen-btn').classList.toggle('hidden', !isFullscreen);
 });
 
 // --- Persistencia de la autorización ---

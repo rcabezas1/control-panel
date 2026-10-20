@@ -11,6 +11,12 @@
 
 <body class="bg-black text-white min-h-screen p-4 sm:p-8 flex justify-center">
 
+    <button id="exit-fullscreen-btn" onclick="toggleFullscreen()" title="Salir de pantalla completa"
+        aria-label="Salir de pantalla completa"
+        class="hidden fixed top-4 right-4 z-50 w-12 h-12 bg-slate-800/80 hover:bg-red-700 text-white text-2xl font-bold rounded-full border-2 border-slate-600 transition cursor-pointer">
+        ✕
+    </button>
+
     <main class="w-full max-w-5xl flex flex-col gap-8">
         <header
             class="flex justify-between items-center bg-slate-950 border-2 border-slate-700 rounded-2xl px-6 py-4 shadow-2xl">
